@@ -178,6 +178,7 @@ func GitserverPushConfig(repo *types.Repo, au auth.Authenticator) (*protocol.Pus
 		return &protocol.PushConfig{
 			RemoteURL:  cloneURL.String(),
 			PrivateKey: privateKey,
+			PublicKey:  sshA.SSHPublicKey(),
 			Passphrase: passphrase,
 		}, nil
 	}
