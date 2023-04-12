@@ -422,7 +422,6 @@ func Code(ctx context.Context, p Params) (response *HighlightedCode, aborted boo
 		StabilizeTimeout: stabilizeTimeout,
 		Tracer:           ot.GetTracer(ctx), //nolint:staticcheck // Drop once we get rid of OpenTracing
 		LineLengthLimit:  maxLineLength,
-		CSS:              true,
 		Engine:           getEngineParameter(filetypeQuery.Engine),
 	}
 

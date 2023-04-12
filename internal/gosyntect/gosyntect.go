@@ -64,26 +64,11 @@ type Query struct {
 	// Filetype is the language name.
 	Filetype string `json:"filetype"`
 
-	// Theme is the color theme to use for highlighting.
-	// If CSS is true, theme is ignored.
-	//
-	// See https://github.com/sourcegraph/syntect_server#embedded-themes
-	Theme string `json:"theme"`
-
 	// Code is the literal code to highlight.
 	Code string `json:"code"`
 
-	// CSS causes results to be returned in HTML table format with CSS class
-	// names annotating the spans rather than inline styles.
-	//
-	// TODO: I think we can just delete this? And theme? We don't use these.
-	// Then we could remove themes from syntect as well. I don't think we
-	// have any use case for these anymore (and haven't for awhile).
-	CSS bool `json:"css"`
-
 	// LineLengthLimit is the maximum length of line that will be highlighted if set.
 	// Defaults to no max if zero.
-	// If CSS is false, LineLengthLimit is ignored.
 	LineLengthLimit int `json:"line_length_limit,omitempty"`
 
 	// StabilizeTimeout, if non-zero, overrides the default syntect_server
@@ -223,8 +208,6 @@ func (c *Client) Highlight(ctx context.Context, q *Query, format HighlightRespon
 
 	// Can only call ht.Span() after the request has been executed, so add our span tags in now.
 	ht.Span().SetTag("Filepath", q.Filepath)
-	ht.Span().SetTag("Theme", q.Theme)
-	ht.Span().SetTag("CSS", q.CSS)
 
 	// Decode the response.
 	var r response
