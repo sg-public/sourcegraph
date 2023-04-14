@@ -263,6 +263,7 @@ require (
 	github.com/k3a/html2text v1.1.0
 	github.com/opsgenie/opsgenie-go-sdk-v2 v1.2.13
 	github.com/pandatix/go-cvss v0.5.2
+	github.com/pjlast/llmsp v0.0.0-20230414080540-f0540c8273e6
 	github.com/sabhiram/go-gitignore v0.0.0-20210923224102-525f6e181f06
 	github.com/scim2/filter-parser/v2 v2.2.0
 	github.com/sourcegraph/conc v0.2.0
