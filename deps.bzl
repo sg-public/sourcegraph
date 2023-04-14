@@ -5018,6 +5018,13 @@ def go_dependencies():
         sum = "h1:uKQP/7QOzNtKYH7UTohZLcjF5/55EnTw0jO/Ru4jZwI=",
         version = "v0.2.3",
     )
+    go_repository(
+        name = "com_github_pjlast_llmsp",
+        build_file_proto_mode = "disable_global",
+        importpath = "github.com/pjlast/llmsp",
+        sum = "h1:NYUDETjlkAs4ui0FZUefeHMZHmwJRwDwf1GGJmNFq5I=",
+        version = "v0.0.0-20230414080540-f0540c8273e6",
+    )
 
     go_repository(
         name = "com_github_pkg_browser",
@@ -5681,6 +5688,13 @@ def go_dependencies():
         sum = "h1:uBLhh66Nf4BcRnvCkMVEuYZ/bQ9ok0rOlEJhfVUpJj4=",
         version = "v0.0.0-20210910070954-ef39ade5591d",
     )
+    go_repository(
+        name = "com_github_sourcegraph_jsonrpc2",
+        build_file_proto_mode = "disable_global",
+        importpath = "github.com/sourcegraph/jsonrpc2",
+        sum = "h1:KjN/dC4fP6aN9030MZCJs9WQbTOjWHhrtKVpzzSrr/U=",
+        version = "v0.2.0",
+    )
 
     go_repository(
         name = "com_github_sourcegraph_jsonx",
@@ -5731,8 +5745,8 @@ def go_dependencies():
         name = "com_github_sourcegraph_zoekt",
         build_file_proto_mode = "disable_global",
         importpath = "github.com/sourcegraph/zoekt",
-        sum = "h1:dZN5lUWLL4I3jkxQG9SAtF+Ufv92JnQhNiGoXJfRHjU=",
-        version = "v0.0.0-20230328081101-02541e61dd57",
+        sum = "h1:moc3LRc+FZ6RmjMjpsuJy8siNO2gWJxzD1p5eYr4SE8=",
+        version = "v0.0.0-20230405161007-b247fb51dece",
     )
 
     go_repository(
