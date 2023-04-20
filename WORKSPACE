@@ -14,6 +14,15 @@ load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
 bazel_skylib_workspace()
 
 http_archive(
+    name = "platforms",
+    sha256 = "460caee0fa583b908c622913334ec3c1b842572b9c23cf0d3da0c2543a1a157d",
+    urls = [
+        "https://mirror.bazel.build/github.com/bazelbuild/platforms/releases/download/0.0.6/platforms-0.0.6.tar.gz",
+        "https://github.com/bazelbuild/platforms/releases/download/0.0.6/platforms-0.0.6.tar.gz",
+    ],
+)
+
+http_archive(
     name = "aspect_bazel_lib",
     sha256 = "2518c757715d4f5fc7cc7e0a68742dd1155eaafc78fb9196b8a18e13a738cea2",
     strip_prefix = "bazel-lib-1.28.0",
@@ -72,6 +81,29 @@ http_archive(
     name = "rules_rust",
     sha256 = "dc8d79fe9a5beb79d93e482eb807266a0e066e97a7b8c48d43ecf91f32a3a8f3",
     urls = ["https://github.com/bazelbuild/rules_rust/releases/download/0.19.0/rules_rust-v0.19.0.tar.gz"],
+    patches = [
+        "//:bazel/patches/001-rules-rust-crate-universe.patch",
+    ],
+)
+
+http_archive(
+    name = "io_tweag_rules_nixpkgs",
+    strip_prefix = "rules_nixpkgs-4dddbafba508cd2dffd95b8562cab91c9336fe36",
+    urls = ["https://github.com/tweag/rules_nixpkgs/archive/4dddbafba508cd2dffd95b8562cab91c9336fe36.tar.gz"],
+)
+
+load("@io_tweag_rules_nixpkgs//nixpkgs:repositories.bzl", "rules_nixpkgs_dependencies")
+
+rules_nixpkgs_dependencies()
+
+load("@io_tweag_rules_nixpkgs//nixpkgs:nixpkgs.bzl", "nixpkgs_local_repository")
+
+nixpkgs_local_repository(
+    name = "nixpkgs",
+    nix_file = "//:nixpkgs.nix",
+    nix_file_deps = [
+        "//:nixpkgs.json"
+    ],
 )
 
 # rules_js setup ================================
@@ -80,12 +112,20 @@ load("@aspect_rules_js//js:repositories.bzl", "rules_js_dependencies")
 rules_js_dependencies()
 
 # node toolchain setup ==========================
-load("@rules_nodejs//nodejs:repositories.bzl", "nodejs_register_toolchains")
+# load("@rules_nodejs//nodejs:repositories.bzl", "nodejs_register_toolchains")
+load("@io_tweag_rules_nixpkgs//toolchains/nodejs:nodejs.bzl", "nixpkgs_nodejs_configure")
+# load("@io_tweag_rules_nixpkgs//nixpkgs:toolchains/rust.bzl", "nixpkgs_rust_configure")
 
-nodejs_register_toolchains(
+nixpkgs_nodejs_configure(
     name = "nodejs",
-    node_version = "16.19.0",
+    repository = "@nixpkgs",
+    attribute_path = "nodejs-16_x",
 )
+
+# nodejs_register_toolchains(
+#     name = "nodejs",
+#     node_version = "16.19.0",
+# )
 
 # rules_js npm setup ============================
 load("@aspect_rules_js//npm:npm_import.bzl", "npm_translate_lock")
@@ -202,7 +242,7 @@ go_rules_dependencies()
 
 go_register_toolchains(
     nogo = "@//:sg_nogo",
-    version = "1.19.8",
+    version = "host",
 )
 
 linter_dependencies()
@@ -216,16 +256,24 @@ protobuf_deps()
 # rust toolchain setup
 load("@rules_rust//rust:repositories.bzl", "rules_rust_dependencies", "rust_register_toolchains")
 
+load("@io_tweag_rules_nixpkgs//nixpkgs:toolchains/rust.bzl", "nixpkgs_rust_configure")
+
 rules_rust_dependencies()
 
-rust_register_toolchains(
-    edition = "2021",
-    # Keep in sync with docker-images/syntax-highlighter/Dockerfile
-    # and docker-images/syntax-highlighter/rust-toolchain.toml
-    versions = [
-        "1.68.0",
-    ],
+nixpkgs_rust_configure(
+    repository = "@nixpkgs",
+    name = "nix_rust",
+    default_edition = "2021",
 )
+
+# rust_register_toolchains(
+#     edition = "2021",
+#     # Keep in sync with docker-images/syntax-highlighter/Dockerfile
+#     # and docker-images/syntax-highlighter/rust-toolchain.toml
+#     versions = [
+#         "1.68.0",
+#     ],
+# )
 
 load("@rules_rust//crate_universe:defs.bzl", "crates_repository")
 
@@ -246,6 +294,8 @@ crates_repository(
         "//docker-images/syntax-highlighter:crates/scip-treesitter-languages/Cargo.toml",
         "//docker-images/syntax-highlighter:crates/sg-syntax/Cargo.toml",
     ],
+    rust_toolchain_cargo_template = "@nix_rust//:bin/{tool}",
+    rust_toolchain_rustc_template = "@nix_rust//:bin/{tool}",
 )
 
 load("@crate_index//:defs.bzl", "crate_repositories")

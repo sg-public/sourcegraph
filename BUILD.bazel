@@ -229,4 +229,7 @@ nogo(
 
 exports_files([
     "go.mod",
+    "nixpkgs.nix",
+    "nixpkgs.json",
+    "bazel/patches/001-rules-rust-crate-universe.patch",
 ])

@@ -24,11 +24,22 @@ let
   #
   # Additionally bazel seems to break when CC and CXX is set to a nix managed
   # compiler on darwin. So the script unsets those.
-  bazelisk = pkgs.writeScriptBin "bazel" ''
+  bazelisk = pkgs.writeScriptBin "bazel-temp" ''
     #!${pkgs.stdenv.shell}
     unset CC CXX
     exec ${pkgs.bazelisk}/bin/bazelisk "$@"
   '';
+  bazelStatic = pkgs.bazel.overrideAttrs (oldAttrs: {
+    preBuildPhase = oldAttrs.preBuildPhase + ''
+      export BAZEL_LINKLIBS=-l%:libstdc++.a:-lm
+      export BAZEL_LINKOPTS=-static-libstdc++:-static-libgcc
+    '';
+
+    postFixup = oldAttrs.postFixup + ''
+
+    '';
+  });
+  bazelStaticWrapped = pkgs.writeShellScriptBin "bazel" ''exec -a $0 ${bazelStatic}/bin/bazel-6.1.1-linux-x86_64 "$@"'';
 in
 pkgs.mkShell {
   name = "sourcegraph-dev";
@@ -80,11 +91,13 @@ pkgs.mkShell {
     libiconv
     clippy
 
-    bazelisk
+    bazel-watcher
+    bazelStaticWrapped
   ];
 
   # Startup postgres
   shellHook = ''
+    set -h # command hashmap is disabled by default
     . ./dev/nix/shell-hook.sh
   '';
 
@@ -98,4 +111,7 @@ pkgs.mkShell {
   RUST_SRC_PATH = "${pkgs.rust.packages.stable.rustPlatform.rustLibSrc}";
 
   DEV_WEB_BUILDER = "esbuild";
+
+  # not sure if still needed, maybe
+  LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath [ pkgs.stdenv.cc.cc.lib pkgs.zlib ];
 }
