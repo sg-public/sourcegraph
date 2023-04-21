@@ -114,7 +114,6 @@ rules_js_dependencies()
 # node toolchain setup ==========================
 # load("@rules_nodejs//nodejs:repositories.bzl", "nodejs_register_toolchains")
 load("@io_tweag_rules_nixpkgs//toolchains/nodejs:nodejs.bzl", "nixpkgs_nodejs_configure")
-# load("@io_tweag_rules_nixpkgs//nixpkgs:toolchains/rust.bzl", "nixpkgs_rust_configure")
 
 nixpkgs_nodejs_configure(
     name = "nodejs",
@@ -242,7 +241,7 @@ go_rules_dependencies()
 
 go_register_toolchains(
     nogo = "@//:sg_nogo",
-    version = "host",
+    version = "1.19.8",
 )
 
 linter_dependencies()
