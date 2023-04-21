@@ -91,6 +91,7 @@ pkgs.mkShell {
     # special sauce bazel stuff.
     ibazel
     bazelStaticWrapped
+    bazel-buildtools
   ];
 
   # Startup postgres
