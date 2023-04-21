@@ -112,13 +112,17 @@ load("@aspect_rules_js//js:repositories.bzl", "rules_js_dependencies")
 rules_js_dependencies()
 
 # node toolchain setup ==========================
-# load("@rules_nodejs//nodejs:repositories.bzl", "nodejs_register_toolchains")
+load("@rules_nodejs//nodejs:repositories.bzl", "nodejs_register_toolchains")
 load("@io_tweag_rules_nixpkgs//toolchains/nodejs:nodejs.bzl", "nixpkgs_nodejs_configure")
 
 nixpkgs_nodejs_configure(
     name = "nodejs",
     repository = "@nixpkgs",
     attribute_path = "nodejs-16_x",
+    # register = False,
+    exec_constraints = [
+        "@platforms//os:nixos"
+    ]
 )
 
 # nodejs_register_toolchains(
@@ -263,6 +267,9 @@ nixpkgs_rust_configure(
     repository = "@nixpkgs",
     name = "nix_rust",
     default_edition = "2021",
+    exec_constraints = [
+        "@platforms//os:nixos"
+    ]
 )
 
 # rust_register_toolchains(
