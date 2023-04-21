@@ -15,7 +15,7 @@ bazel_skylib_workspace()
 
 http_archive(
     name = "platforms",
-    sha256 = "460caee0fa583b908c622913334ec3c1b842572b9c23cf0d3da0c2543a1a157d",
+    sha256 = "5308fc1d8865406a49427ba24a9ab53087f17f5266a7aabbfc28823f3916e1ca",
     urls = [
         "https://mirror.bazel.build/github.com/bazelbuild/platforms/releases/download/0.0.6/platforms-0.0.6.tar.gz",
         "https://github.com/bazelbuild/platforms/releases/download/0.0.6/platforms-0.0.6.tar.gz",
@@ -79,11 +79,11 @@ http_archive(
 
 http_archive(
     name = "rules_rust",
-    sha256 = "dc8d79fe9a5beb79d93e482eb807266a0e066e97a7b8c48d43ecf91f32a3a8f3",
-    urls = ["https://github.com/bazelbuild/rules_rust/releases/download/0.19.0/rules_rust-v0.19.0.tar.gz"],
     patches = [
         "//:bazel/patches/001-rules-rust-crate-universe.patch",
     ],
+    sha256 = "dc8d79fe9a5beb79d93e482eb807266a0e066e97a7b8c48d43ecf91f32a3a8f3",
+    urls = ["https://github.com/bazelbuild/rules_rust/releases/download/0.19.0/rules_rust-v0.19.0.tar.gz"],
 )
 
 http_archive(
@@ -102,7 +102,7 @@ nixpkgs_local_repository(
     name = "nixpkgs",
     nix_file = "//:nixpkgs.nix",
     nix_file_deps = [
-        "//:nixpkgs.json"
+        "//:nixpkgs.json",
     ],
 )
 
@@ -115,20 +115,17 @@ rules_js_dependencies()
 load("@rules_nodejs//nodejs:repositories.bzl", "nodejs_register_toolchains")
 load("@io_tweag_rules_nixpkgs//toolchains/nodejs:nodejs.bzl", "nixpkgs_nodejs_configure")
 
-nixpkgs_nodejs_configure(
+nodejs_register_toolchains(
     name = "nodejs",
-    repository = "@nixpkgs",
-    attribute_path = "nodejs-16_x",
-    # register = False,
-    exec_constraints = [
-        "@platforms//os:nixos"
-    ]
+    node_version = "16.19.0",
 )
 
-# nodejs_register_toolchains(
-#     name = "nodejs",
-#     node_version = "16.19.0",
-# )
+nixpkgs_nodejs_configure(
+    name = "nixpkgs_nodejs",
+    attribute_path = "nodejs-16_x",
+    register = False,
+    repository = "@nixpkgs",
+)
 
 # rules_js npm setup ============================
 load("@aspect_rules_js//npm:npm_import.bzl", "npm_translate_lock")
@@ -258,28 +255,25 @@ protobuf_deps()
 
 # rust toolchain setup
 load("@rules_rust//rust:repositories.bzl", "rules_rust_dependencies", "rust_register_toolchains")
-
 load("@io_tweag_rules_nixpkgs//nixpkgs:toolchains/rust.bzl", "nixpkgs_rust_configure")
 
 rules_rust_dependencies()
 
-nixpkgs_rust_configure(
-    repository = "@nixpkgs",
-    name = "nix_rust",
-    default_edition = "2021",
-    exec_constraints = [
-        "@platforms//os:nixos"
-    ]
+rust_register_toolchains(
+    edition = "2021",
+    # Keep in sync with docker-images/syntax-highlighter/Dockerfile
+    # and docker-images/syntax-highlighter/rust-toolchain.toml
+    versions = [
+        "1.68.0",
+    ],
 )
 
-# rust_register_toolchains(
-#     edition = "2021",
-#     # Keep in sync with docker-images/syntax-highlighter/Dockerfile
-#     # and docker-images/syntax-highlighter/rust-toolchain.toml
-#     versions = [
-#         "1.68.0",
-#     ],
-# )
+nixpkgs_rust_configure(
+    name = "nixpkgs_rust",
+    default_edition = "2021",
+    register = False,
+    repository = "@nixpkgs",
+)
 
 load("@rules_rust//crate_universe:defs.bzl", "crates_repository")
 
@@ -300,8 +294,8 @@ crates_repository(
         "//docker-images/syntax-highlighter:crates/scip-treesitter-languages/Cargo.toml",
         "//docker-images/syntax-highlighter:crates/sg-syntax/Cargo.toml",
     ],
-    rust_toolchain_cargo_template = "@nix_rust//:bin/{tool}",
-    rust_toolchain_rustc_template = "@nix_rust//:bin/{tool}",
+    # rust_toolchain_cargo_template = "@nixpkgs_rust//:bin/{tool}",
+    # rust_toolchain_rustc_template = "@nixpkgs_rust//:bin/{tool}",
 )
 
 load("@crate_index//:defs.bzl", "crate_repositories")

@@ -36,9 +36,12 @@ let
       export BAZEL_LINKOPTS=-static-libstdc++:-static-libgcc
     '';
   });
-  bazelStaticWrapped = pkgs.writeShellScriptBin "bazel" ''exec -a $0 ${bazelStatic}/bin/bazel-6.1.1-${pkgs.system} "$@"'';
+  bazelStaticWrapped =
+    if pkgs.hostPlatform.isLinux then
+      pkgs.writeShellScriptBin "bazel" ''exec -a $0 ${bazelStatic}/bin/bazel-6.1.1-linux-${pkgs.hostPlatform.parsed.cpu.name} "$@"''
+    else bazelStatic;
   ibazel = pkgs.writeShellScriptBin "ibazel" ''
-    exec ${pkgs.bazel-watcher}/bin/ibazel -bazel_path=${bazelStaticWrapped}/bin/bazel "$@"
+    exec ${pkgs.bazel-watcher}/bin/ibazel -bazel_path=${if pkgs.hostPlatform.isLinux then bazelStaticWrapped else bazelStatic}/bin/bazel "$@"
   '';
 in
 pkgs.mkShell {
