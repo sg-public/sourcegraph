@@ -20,6 +20,7 @@ type DotcomResolver interface {
 	// DotcomMutation
 	CreateProductSubscription(context.Context, *CreateProductSubscriptionArgs) (ProductSubscription, error)
 	GenerateProductLicenseForSubscription(context.Context, *GenerateProductLicenseForSubscriptionArgs) (ProductLicense, error)
+	UpdateLLMProxyAccessForSubscription(context.Context, *UpdateLLMProxyAccessForSubscriptionArgs) (LLMProxyAccess, error)
 	ArchiveProductSubscription(context.Context, *ArchiveProductSubscriptionArgs) (*EmptyResponse, error)
 
 	// DotcomQuery
@@ -38,6 +39,7 @@ type ProductSubscription interface {
 	Account(context.Context) (*UserResolver, error)
 	ActiveLicense(context.Context) (ProductLicense, error)
 	ProductLicenses(context.Context, *graphqlutil.ConnectionArgs) (ProductLicenseConnection, error)
+	LLMProxyAccess() LLMProxyAccess
 	CreatedAt() gqlutil.DateTime
 	IsArchived() bool
 	URL(context.Context) (string, error)
@@ -51,6 +53,11 @@ type CreateProductSubscriptionArgs struct {
 type GenerateProductLicenseForSubscriptionArgs struct {
 	ProductSubscriptionID graphql.ID
 	License               *ProductLicenseInput
+}
+
+type UpdateLLMProxyAccessForSubscriptionArgs struct {
+	ProductSubscriptionID graphql.ID
+	Tier                  *string
 }
 
 type ArchiveProductSubscriptionArgs struct{ ID graphql.ID }
@@ -100,4 +107,9 @@ type ProductLicenseConnection interface {
 	Nodes(context.Context) ([]ProductLicense, error)
 	TotalCount(context.Context) (int32, error)
 	PageInfo(context.Context) (*graphqlutil.PageInfo, error)
+}
+
+// LLMProxyAccess is the interface for the GraphQL type LLMProxyAccess.
+type LLMProxyAccess interface {
+	Tier() string
 }

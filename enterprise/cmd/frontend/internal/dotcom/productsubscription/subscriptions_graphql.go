@@ -2,6 +2,7 @@ package productsubscription
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"strings"
 	"sync"
@@ -117,6 +118,13 @@ func (r *productSubscription) ProductLicenses(ctx context.Context, args *graphql
 	return &productLicenseConnection{db: r.db, opt: opt}, nil
 }
 
+func (r *productSubscription) LLMProxyAccess() graphqlbackend.LLMProxyAccess {
+	if r.v.LLMProxyAccessTier == nil {
+		return nil
+	}
+	return &llmProxyAccessResolver{tier: *r.v.LLMProxyAccessTier}
+}
+
 func (r *productSubscription) CreatedAt() gqlutil.DateTime {
 	return gqlutil.DateTime{Time: r.v.CreatedAt}
 }
@@ -156,6 +164,30 @@ func (r ProductSubscriptionLicensingResolver) CreateProductSubscription(ctx cont
 		return nil, err
 	}
 	return productSubscriptionByDBID(ctx, r.DB, id)
+}
+
+func (r ProductSubscriptionLicensingResolver) UpdateLLMProxyAccessForSubscription(ctx context.Context, args *graphqlbackend.UpdateLLMProxyAccessForSubscriptionArgs) (graphqlbackend.LLMProxyAccess, error) {
+	// 🚨 SECURITY: Only site admins may update product subscriptions.
+	if err := auth.CheckCurrentUserIsSiteAdmin(ctx, r.DB); err != nil {
+		return nil, err
+	}
+
+	idString, err := unmarshalProductSubscriptionID(args.ProductSubscriptionID)
+	if err != nil {
+		return nil, err
+	}
+	if args.Tier == nil {
+		return nil, dbSubscriptions{db: r.DB}.Update(ctx, idString, dbSubscriptionUpdate{
+			llmProxyAccessTier: &sql.NullString{Valid: false},
+		})
+	}
+
+	return &llmProxyAccessResolver{
+			tier: *args.Tier,
+		},
+		dbSubscriptions{db: r.DB}.Update(ctx, idString, dbSubscriptionUpdate{
+			llmProxyAccessTier: &sql.NullString{String: *args.Tier, Valid: true},
+		})
 }
 
 func (r ProductSubscriptionLicensingResolver) ArchiveProductSubscription(ctx context.Context, args *graphqlbackend.ArchiveProductSubscriptionArgs) (*graphqlbackend.EmptyResponse, error) {
@@ -275,3 +307,9 @@ func (r *productSubscriptionConnection) PageInfo(ctx context.Context) (*graphqlu
 	}
 	return graphqlutil.HasNextPage(r.opt.LimitOffset != nil && len(results) > r.opt.Limit), nil
 }
+
+type llmProxyAccessResolver struct {
+	tier string
+}
+
+func (l llmProxyAccessResolver) Tier() string { return l.tier }

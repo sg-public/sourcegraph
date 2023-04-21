@@ -22,6 +22,11 @@ type dbSubscription struct {
 	CreatedAt             time.Time
 	ArchivedAt            *time.Time
 	AccountNumber         *string
+
+	// LLMProxyAccessTier specifies what kind of LLM-proxy access is applicable for
+	// this subscription. It is not tied to any individual license key associated
+	// with a subscription.
+	LLMProxyAccessTier *string
 }
 
 var emailQueries = sqlf.Sprintf(`all_primary_emails AS (
@@ -124,7 +129,8 @@ SELECT
 	billing_subscription_id,
 	product_subscriptions.created_at,
 	product_subscriptions.archived_at,
-	product_subscriptions.account_number
+	product_subscriptions.account_number,
+	product_subscriptions.llm_proxy_access_tier
 FROM product_subscriptions
 LEFT OUTER JOIN users ON product_subscriptions.user_id = users.id
 LEFT OUTER JOIN primary_emails ON users.id = primary_emails.user_id
@@ -145,7 +151,15 @@ ORDER BY archived_at DESC NULLS FIRST, created_at DESC
 	var results []*dbSubscription
 	for rows.Next() {
 		var v dbSubscription
-		if err := rows.Scan(&v.ID, &v.UserID, &v.BillingSubscriptionID, &v.CreatedAt, &v.ArchivedAt, &v.AccountNumber); err != nil {
+		if err := rows.Scan(
+			&v.ID,
+			&v.UserID,
+			&v.BillingSubscriptionID,
+			&v.CreatedAt,
+			&v.ArchivedAt,
+			&v.AccountNumber,
+			&v.LLMProxyAccessTier,
+		); err != nil {
 			return nil, err
 		}
 		results = append(results, &v)
@@ -174,6 +188,7 @@ WHERE (%s)`, emailQueries, sqlf.Join(opt.sqlConditions(), ") AND ("))
 // value is nil, the field remains unchanged in the database.
 type dbSubscriptionUpdate struct {
 	billingSubscriptionID *sql.NullString
+	llmProxyAccessTier    *sql.NullString
 }
 
 // Update updates a product subscription.
@@ -183,6 +198,9 @@ func (s dbSubscriptions) Update(ctx context.Context, id string, update dbSubscri
 	}
 	if v := update.billingSubscriptionID; v != nil {
 		fieldUpdates = append(fieldUpdates, sqlf.Sprintf("billing_subscription_id=%s", *v))
+	}
+	if v := update.llmProxyAccessTier; v != nil {
+		fieldUpdates = append(fieldUpdates, sqlf.Sprintf("llm_proxy_access_tier=%s", *v))
 	}
 
 	query := sqlf.Sprintf("UPDATE product_subscriptions SET %s WHERE id=%s", sqlf.Join(fieldUpdates, ", "), id)

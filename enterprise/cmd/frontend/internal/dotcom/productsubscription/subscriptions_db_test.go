@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"testing"
 
+	"github.com/hexops/autogold/v2"
+	"github.com/hexops/valast"
 	"github.com/sourcegraph/log/logtest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -142,40 +144,73 @@ func TestProductSubscriptions_Update(t *testing.T) {
 		t.Errorf("got %q, want nil", *got.BillingSubscriptionID)
 	}
 
-	// Set non-null value.
-	if err := (dbSubscriptions{db: db}).Update(ctx, sub0, dbSubscriptionUpdate{
-		billingSubscriptionID: &sql.NullString{
-			String: "x",
-			Valid:  true,
-		},
-	}); err != nil {
-		t.Fatal(err)
-	}
-	if got, err := (dbSubscriptions{db: db}).GetByID(ctx, sub0); err != nil {
-		t.Fatal(err)
-	} else if want := "x"; got.BillingSubscriptionID == nil || *got.BillingSubscriptionID != want {
-		t.Errorf("got %v, want %q", got.BillingSubscriptionID, want)
-	}
+	t.Run("set billingSubscriptionID not null", func(t *testing.T) {
+		if err := (dbSubscriptions{db: db}).Update(ctx, sub0, dbSubscriptionUpdate{
+			billingSubscriptionID: &sql.NullString{
+				String: "x",
+				Valid:  true,
+			},
+		}); err != nil {
+			t.Fatal(err)
+		}
+		got, err := (dbSubscriptions{db: db}).GetByID(ctx, sub0)
+		if err != nil {
+			t.Fatal(err)
+		}
+		autogold.Expect(valast.Addr("x").(*string)).Equal(t, got.BillingSubscriptionID)
+	})
 
-	// Update no fields.
-	if err := (dbSubscriptions{db: db}).Update(ctx, sub0, dbSubscriptionUpdate{billingSubscriptionID: nil}); err != nil {
-		t.Fatal(err)
-	}
-	if got, err := (dbSubscriptions{db: db}).GetByID(ctx, sub0); err != nil {
-		t.Fatal(err)
-	} else if want := "x"; got.BillingSubscriptionID == nil || *got.BillingSubscriptionID != want {
-		t.Errorf("got %v, want %q", got.BillingSubscriptionID, want)
-	}
+	t.Run("set LLM-proxy tier not null", func(t *testing.T) {
+		if err := (dbSubscriptions{db: db}).Update(ctx, sub0, dbSubscriptionUpdate{
+			llmProxyAccessTier: &sql.NullString{
+				String: "y",
+				Valid:  true,
+			},
+		}); err != nil {
+			t.Fatal(err)
+		}
+		got, err := (dbSubscriptions{db: db}).GetByID(ctx, sub0)
+		if err != nil {
+			t.Fatal(err)
+		}
+		autogold.Expect(valast.Addr("y").(*string)).Equal(t, got.LLMProxyAccessTier)
+	})
 
-	// Set null value.
-	if err := (dbSubscriptions{db: db}).Update(ctx, sub0, dbSubscriptionUpdate{
-		billingSubscriptionID: &sql.NullString{Valid: false},
-	}); err != nil {
-		t.Fatal(err)
-	}
-	if got, err := (dbSubscriptions{db: db}).GetByID(ctx, sub0); err != nil {
-		t.Fatal(err)
-	} else if got.BillingSubscriptionID != nil {
-		t.Errorf("got %q, want nil", *got.BillingSubscriptionID)
-	}
+	t.Run("update no fields", func(t *testing.T) {
+		// Update no fields.
+		if err := (dbSubscriptions{db: db}).Update(ctx, sub0, dbSubscriptionUpdate{billingSubscriptionID: nil}); err != nil {
+			t.Fatal(err)
+		}
+		got, err := (dbSubscriptions{db: db}).GetByID(ctx, sub0)
+		if err != nil {
+			t.Fatal(err)
+		}
+		autogold.Expect(valast.Addr("x").(*string)).Equal(t, got.BillingSubscriptionID)
+	})
+
+	t.Run("set billingSubscriptionID to null", func(t *testing.T) {
+		if err := (dbSubscriptions{db: db}).Update(ctx, sub0, dbSubscriptionUpdate{
+			billingSubscriptionID: &sql.NullString{Valid: false},
+		}); err != nil {
+			t.Fatal(err)
+		}
+		got, err := (dbSubscriptions{db: db}).GetByID(ctx, sub0)
+		if err != nil {
+			t.Fatal(err)
+		}
+		autogold.Expect((*string)(nil)).Equal(t, got.BillingSubscriptionID)
+	})
+
+	t.Run("set LLM-proxy tier to null", func(t *testing.T) {
+		if err := (dbSubscriptions{db: db}).Update(ctx, sub0, dbSubscriptionUpdate{
+			llmProxyAccessTier: &sql.NullString{Valid: false},
+		}); err != nil {
+			t.Fatal(err)
+		}
+		got, err := (dbSubscriptions{db: db}).GetByID(ctx, sub0)
+		if err != nil {
+			t.Fatal(err)
+		}
+		autogold.Expect((*string)(nil)).Equal(t, got.LLMProxyAccessTier)
+	})
 }
