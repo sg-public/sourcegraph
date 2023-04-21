@@ -30,16 +30,16 @@ let
     exec ${pkgs.bazelisk}/bin/bazelisk "$@"
   '';
   bazelStatic = pkgs.bazel.overrideAttrs (oldAttrs: {
-    preBuildPhase = oldAttrs.preBuildPhase + ''
+    # TODO: test whether putting this here doesn't trigger a build on non-linux
+    preBuildPhase = oldAttrs.preBuildPhase + pkgs.lib.optionalString pkgs.hostPlatform.isLinux ''
       export BAZEL_LINKLIBS=-l%:libstdc++.a:-lm
       export BAZEL_LINKOPTS=-static-libstdc++:-static-libgcc
     '';
-
-    postFixup = oldAttrs.postFixup + ''
-
-    '';
   });
-  bazelStaticWrapped = pkgs.writeShellScriptBin "bazel" ''exec -a $0 ${bazelStatic}/bin/bazel-6.1.1-linux-x86_64 "$@"'';
+  bazelStaticWrapped = pkgs.writeShellScriptBin "bazel" ''exec -a $0 ${bazelStatic}/bin/bazel-6.1.1-${pkgs.system} "$@"'';
+  ibazel = pkgs.writeShellScriptBin "ibazel" ''
+    exec ${pkgs.bazel-watcher}/bin/ibazel -bazel_path=${bazelStaticWrapped}/bin/bazel "$@"
+  '';
 in
 pkgs.mkShell {
   name = "sourcegraph-dev";
@@ -54,8 +54,7 @@ pkgs.mkShell {
     # Cache and some store data
     redis
 
-    # Used by symbols and zoekt-git-index to extract symbols from
-    # sourcecode.
+    # Used by symbols and zoekt-git-index to extract symbols from sourcecode.
     universal-ctags
 
     # Build our backend.
@@ -71,8 +70,7 @@ pkgs.mkShell {
     shfmt
     shellcheck
 
-    # Web tools. Need node 16.7 so we use unstable. Yarn should also be built
-    # against it.
+    # Web tools. Need node 16.7 so we use unstable. Yarn should also be built against it.
     nodejs-16_x
     (nodejs-16_x.pkgs.pnpm.override {
       version = "7.28.0";
@@ -83,21 +81,21 @@ pkgs.mkShell {
     })
     nodePackages.typescript
 
-    # Rust utils for syntax-highlighter service,
-    # currently not pinned to the same versions.
+    # Rust utils for syntax-highlighter service, currently not pinned to the same versions.
     cargo
     rustc
     rustfmt
     libiconv
     clippy
 
-    bazel-watcher
+    # special sauce bazel stuff.
+    ibazel
     bazelStaticWrapped
   ];
 
   # Startup postgres
   shellHook = ''
-    set -h # command hashmap is disabled by default
+    set -h # command hashmap is not guaranteed to be enabled, but required by sg
     . ./dev/nix/shell-hook.sh
   '';
 
