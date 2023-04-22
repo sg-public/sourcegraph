@@ -24,6 +24,7 @@ type dbLicense struct {
 	LicenseTags           []string
 	LicenseUserCount      *int
 	LicenseExpiresAt      *time.Time
+	AccessTokenSHA256     []byte
 }
 
 // errLicenseNotFound occurs when a database operation expects a specific Sourcegraph
@@ -111,6 +112,21 @@ func (o dbLicensesListOptions) sqlConditions() []*sqlf.Query {
 	return conds
 }
 
+func (s dbLicenses) Active(ctx context.Context, subscriptionID string) (*dbLicense, error) {
+	// Return newest license.
+	licenses, err := s.List(ctx, dbLicensesListOptions{
+		ProductSubscriptionID: subscriptionID,
+		LimitOffset:           &database.LimitOffset{Limit: 1},
+	})
+	if err != nil {
+		return nil, err
+	}
+	if len(licenses) == 0 {
+		return nil, nil
+	}
+	return licenses[0], nil
+}
+
 // List lists all product licenses that satisfy the options.
 func (s dbLicenses) List(ctx context.Context, opt dbLicensesListOptions) ([]*dbLicense, error) {
 	if mocks.licenses.List != nil {
@@ -130,7 +146,8 @@ SELECT
 	license_version,
 	license_tags,
 	license_user_count,
-	license_expires_at
+	license_expires_at,
+	access_token_sha256
 FROM product_licenses
 WHERE (%s)
 ORDER BY created_at DESC
@@ -148,7 +165,17 @@ ORDER BY created_at DESC
 	var results []*dbLicense
 	for rows.Next() {
 		var v dbLicense
-		if err := rows.Scan(&v.ID, &v.ProductSubscriptionID, &v.LicenseKey, &v.CreatedAt, &v.LicenseVersion, pq.Array(&v.LicenseTags), &v.LicenseUserCount, &v.LicenseExpiresAt); err != nil {
+		if err := rows.Scan(
+			&v.ID,
+			&v.ProductSubscriptionID,
+			&v.LicenseKey,
+			&v.CreatedAt,
+			&v.LicenseVersion,
+			pq.Array(&v.LicenseTags),
+			&v.LicenseUserCount,
+			&v.LicenseExpiresAt,
+			&v.AccessTokenSHA256,
+		); err != nil {
 			return nil, err
 		}
 		results = append(results, &v)

@@ -20,12 +20,14 @@ type DotcomResolver interface {
 	// DotcomMutation
 	CreateProductSubscription(context.Context, *CreateProductSubscriptionArgs) (ProductSubscription, error)
 	GenerateProductLicenseForSubscription(context.Context, *GenerateProductLicenseForSubscriptionArgs) (ProductLicense, error)
+	GenerateAccessTokenForSubscription(context.Context, *GenerateAccessTokenForSubscriptionArgs) (ProductSubscriptionAccessToken, error)
 	UpdateLLMProxyAccessForSubscription(context.Context, *UpdateLLMProxyAccessForSubscriptionArgs) (LLMProxyAccess, error)
 	ArchiveProductSubscription(context.Context, *ArchiveProductSubscriptionArgs) (*EmptyResponse, error)
 
 	// DotcomQuery
 	ProductSubscription(context.Context, *ProductSubscriptionArgs) (ProductSubscription, error)
 	ProductSubscriptions(context.Context, *ProductSubscriptionsArgs) (ProductSubscriptionConnection, error)
+	ProductSubscriptionByAccessToken(context.Context, *ProductSubscriptionByAccessTokenArgs) (ProductSubscription, error)
 	ProductLicenses(context.Context, *ProductLicensesArgs) (ProductLicenseConnection, error)
 	ProductLicenseByID(ctx context.Context, id graphql.ID) (ProductLicense, error)
 	ProductSubscriptionByID(ctx context.Context, id graphql.ID) (ProductSubscription, error)
@@ -53,6 +55,15 @@ type CreateProductSubscriptionArgs struct {
 type GenerateProductLicenseForSubscriptionArgs struct {
 	ProductSubscriptionID graphql.ID
 	License               *ProductLicenseInput
+}
+
+type GenerateAccessTokenForSubscriptionArgs struct {
+	ProductSubscriptionID graphql.ID
+}
+
+// ProductSubscriptionAccessToken is the interface for the GraphQL type ProductSubscriptionAccessToken.
+type ProductSubscriptionAccessToken interface {
+	AccessToken() string
 }
 
 type UpdateLLMProxyAccessForSubscriptionArgs struct {
@@ -112,4 +123,14 @@ type ProductLicenseConnection interface {
 // LLMProxyAccess is the interface for the GraphQL type LLMProxyAccess.
 type LLMProxyAccess interface {
 	Tier() string
+}
+
+type ProductSubscriptionByAccessTokenArgs struct {
+	AccessToken string
+}
+
+type ProductSubscriptionAccess interface {
+	ID() graphql.ID
+	UUID() string
+	LLMProxyAccess() LLMProxyAccess
 }

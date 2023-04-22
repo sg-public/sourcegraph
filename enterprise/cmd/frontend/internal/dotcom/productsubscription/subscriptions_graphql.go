@@ -93,17 +93,14 @@ func (r *productSubscription) Account(ctx context.Context) (*graphqlbackend.User
 
 func (r *productSubscription) ActiveLicense(ctx context.Context) (graphqlbackend.ProductLicense, error) {
 	// Return newest license.
-	licenses, err := dbLicenses{db: r.db}.List(ctx, dbLicensesListOptions{
-		ProductSubscriptionID: r.v.ID,
-		LimitOffset:           &database.LimitOffset{Limit: 1},
-	})
+	active, err := dbLicenses{db: r.db}.Active(ctx, r.v.ID)
 	if err != nil {
 		return nil, err
 	}
-	if len(licenses) == 0 {
+	if active == nil {
 		return nil, nil
 	}
-	return &productLicense{db: r.db, v: licenses[0]}, nil
+	return &productLicense{db: r.db, v: active}, nil
 }
 
 func (r *productSubscription) ProductLicenses(ctx context.Context, args *graphqlutil.ConnectionArgs) (graphqlbackend.ProductLicenseConnection, error) {
