@@ -43,6 +43,25 @@ let
   ibazel = pkgs.writeShellScriptBin "ibazel" ''
     exec ${pkgs.bazel-watcher}/bin/ibazel -bazel_path=${if pkgs.hostPlatform.isLinux then bazelStaticWrapped else bazelStatic}/bin/bazel "$@"
   '';
+  cargo-bazel = pkgs.rustPlatform.buildRustPackage rec {
+    pname = "cargo-bazel";
+    version = "0.8.0";
+    sourceRoot = "source/crate_universe";
+    doCheck = false;
+
+    src = pkgs.fetchFromGitHub {
+      owner = "bazelbuild";
+      repo = "rules_rust";
+      rev = "0.19.0";
+      sha256 = "sha256-+tYfw12oELy+x7V8jtGWK0EiNElTwOteO6aUEMlWXio=";
+    };
+
+    patches = [
+      ./dev/nix/patches/001-rules-rust-cargo-bazel-env.patch
+    ];
+
+    cargoSha256 = "sha256-3zFqJrxkHM8MbYkEoThzOJGeFXj9ggTaI+zIL+Hy44I=";
+  };
 in
 pkgs.mkShell {
   name = "sourcegraph-dev";
@@ -116,4 +135,6 @@ pkgs.mkShell {
 
   # not sure if still needed, maybe
   LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath [ pkgs.stdenv.cc.cc.lib pkgs.zlib ];
+
+  CARGO_BAZEL_GENERATOR_URL = "file://${cargo-bazel}/bin/cargo-bazel";
 }

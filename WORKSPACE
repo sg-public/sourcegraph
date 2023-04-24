@@ -79,9 +79,6 @@ http_archive(
 
 http_archive(
     name = "rules_rust",
-    patches = [
-        "//:bazel/patches/001-rules-rust-crate-universe.patch",
-    ],
     sha256 = "dc8d79fe9a5beb79d93e482eb807266a0e066e97a7b8c48d43ecf91f32a3a8f3",
     urls = ["https://github.com/bazelbuild/rules_rust/releases/download/0.19.0/rules_rust-v0.19.0.tar.gz"],
 )
@@ -94,16 +91,19 @@ http_archive(
 
 load("@io_tweag_rules_nixpkgs//nixpkgs:repositories.bzl", "rules_nixpkgs_dependencies")
 
-rules_nixpkgs_dependencies()
+rules_nixpkgs_dependencies(
+    # this complains, why
+    # toolchains = [
+    #     "nodejs",
+    #     "rust",
+    # ],
+)
 
 load("@io_tweag_rules_nixpkgs//nixpkgs:nixpkgs.bzl", "nixpkgs_local_repository")
 
 nixpkgs_local_repository(
     name = "nixpkgs",
-    nix_file = "//:nixpkgs.nix",
-    nix_file_deps = [
-        "//:nixpkgs.json",
-    ],
+    nix_flake_lock_file = "//:flake.lock",
 )
 
 # rules_js setup ================================
@@ -294,8 +294,6 @@ crates_repository(
         "//docker-images/syntax-highlighter:crates/scip-treesitter-languages/Cargo.toml",
         "//docker-images/syntax-highlighter:crates/sg-syntax/Cargo.toml",
     ],
-    # rust_toolchain_cargo_template = "@nixpkgs_rust//:bin/{tool}",
-    # rust_toolchain_rustc_template = "@nixpkgs_rust//:bin/{tool}",
 )
 
 load("@crate_index//:defs.bzl", "crate_repositories")
