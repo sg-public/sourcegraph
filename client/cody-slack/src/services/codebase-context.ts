@@ -25,7 +25,7 @@ const getRepoId = memoize(async (codebase: string) => {
 
 export async function createCodebaseContext(
     codebase: string,
-    contextType: 'embeddings' | 'keyword' | 'none' | 'blended'
+    contextType: 'embeddings' | 'keyword' | 'none' | 'blended' = 'blended'
 ) {
     const repoId = await getRepoId(codebase)
     const embeddingsSearch =
