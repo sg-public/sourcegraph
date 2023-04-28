@@ -129,8 +129,10 @@ func GeneratePipeline(c Config) (*bk.Pipeline, error) {
 			WolfiImagesOperations([]string{
 				// TODO: Do not merge this change
 				"indexed-searcher",
+				"opentelemetry-collector",
 			}, c.Version,
-				c.candidateImageTag(),
+				// c.candidateImageTag(),
+				"latest", // TODO: Do not merge; used to simplify dev
 				(numUpdatedBaseImages > 0),
 			),
 		)
