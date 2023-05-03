@@ -128,6 +128,7 @@ func GeneratePipeline(c Config) (*bk.Pipeline, error) {
 			// TODO: Just hardcode specific images initially
 			WolfiImagesOperations([]string{
 				// TODO: Do not merge this change
+				"frontend",
 				"indexed-searcher",
 				"opentelemetry-collector",
 				"cadvisor",
