@@ -3,6 +3,9 @@
 set -exuo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")"/../../..
 
+# TODO: Remove, override to fix frontend on branch
+DOCKER_BAZEL=true
+
 if [[ "${DOCKER_BAZEL:-false}" == "true" ]]; then
   exit 0
 fi
