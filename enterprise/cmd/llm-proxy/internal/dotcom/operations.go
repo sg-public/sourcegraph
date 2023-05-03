@@ -4,6 +4,7 @@ package dotcom
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/Khan/genqlient/graphql"
 )
@@ -34,82 +35,80 @@ func (v *CheckAccessTokenDotcomDotcomQuery) GetProductSubscriptionByAccessToken(
 // A product subscription that was created on Sourcegraph.com.
 // FOR INTERNAL USE ONLY.
 type CheckAccessTokenDotcomDotcomQueryProductSubscriptionByAccessTokenProductSubscription struct {
-	// The unique ID of this product subscription.
-	Id string `json:"id"`
-	// The unique UUID of this product subscription. Unlike ProductSubscription.id, this does not
-	// encode the type and is not a GraphQL node ID.
-	Uuid string `json:"uuid"`
-	// Whether this product subscription was archived.
-	IsArchived bool `json:"isArchived"`
-	// LLM-proxy access granted to this subscription. Properties may be inferred from the active license, or be defined in overrides.
-	LlmProxyAccess CheckAccessTokenDotcomDotcomQueryProductSubscriptionByAccessTokenProductSubscriptionLlmProxyAccessLLMProxyAccess `json:"llmProxyAccess"`
+	ProductSubscription `json:"-"`
 }
 
 // GetId returns CheckAccessTokenDotcomDotcomQueryProductSubscriptionByAccessTokenProductSubscription.Id, and is useful for accessing the field via an interface.
 func (v *CheckAccessTokenDotcomDotcomQueryProductSubscriptionByAccessTokenProductSubscription) GetId() string {
-	return v.Id
+	return v.ProductSubscription.Id
 }
 
 // GetUuid returns CheckAccessTokenDotcomDotcomQueryProductSubscriptionByAccessTokenProductSubscription.Uuid, and is useful for accessing the field via an interface.
 func (v *CheckAccessTokenDotcomDotcomQueryProductSubscriptionByAccessTokenProductSubscription) GetUuid() string {
-	return v.Uuid
+	return v.ProductSubscription.Uuid
 }
 
 // GetIsArchived returns CheckAccessTokenDotcomDotcomQueryProductSubscriptionByAccessTokenProductSubscription.IsArchived, and is useful for accessing the field via an interface.
 func (v *CheckAccessTokenDotcomDotcomQueryProductSubscriptionByAccessTokenProductSubscription) GetIsArchived() bool {
-	return v.IsArchived
+	return v.ProductSubscription.IsArchived
 }
 
 // GetLlmProxyAccess returns CheckAccessTokenDotcomDotcomQueryProductSubscriptionByAccessTokenProductSubscription.LlmProxyAccess, and is useful for accessing the field via an interface.
-func (v *CheckAccessTokenDotcomDotcomQueryProductSubscriptionByAccessTokenProductSubscription) GetLlmProxyAccess() CheckAccessTokenDotcomDotcomQueryProductSubscriptionByAccessTokenProductSubscriptionLlmProxyAccessLLMProxyAccess {
-	return v.LlmProxyAccess
+func (v *CheckAccessTokenDotcomDotcomQueryProductSubscriptionByAccessTokenProductSubscription) GetLlmProxyAccess() ProductSubscriptionLlmProxyAccessLLMProxyAccess {
+	return v.ProductSubscription.LlmProxyAccess
 }
 
-// CheckAccessTokenDotcomDotcomQueryProductSubscriptionByAccessTokenProductSubscriptionLlmProxyAccessLLMProxyAccess includes the requested fields of the GraphQL type LLMProxyAccess.
-// The GraphQL type's documentation follows.
-//
-// LLM-proxy access granted to a subscription.
-// FOR INTERNAL USE ONLY.
-type CheckAccessTokenDotcomDotcomQueryProductSubscriptionByAccessTokenProductSubscriptionLlmProxyAccessLLMProxyAccess struct {
-	// Whether or not a subscription has LLM-proxy access.
-	//
-	// It may be true, even if a subscription is archived, as a historical record. However,
-	// archived subscriptions should not be treated as having access to LLM-proxy.
-	Enabled bool `json:"enabled"`
-	// Rate limits for LLM-proxy access, if access is enabled.
-	RateLimit *CheckAccessTokenDotcomDotcomQueryProductSubscriptionByAccessTokenProductSubscriptionLlmProxyAccessLLMProxyAccessRateLimitLLMProxyRateLimit `json:"rateLimit"`
+func (v *CheckAccessTokenDotcomDotcomQueryProductSubscriptionByAccessTokenProductSubscription) UnmarshalJSON(b []byte) error {
+
+	if string(b) == "null" {
+		return nil
+	}
+
+	var firstPass struct {
+		*CheckAccessTokenDotcomDotcomQueryProductSubscriptionByAccessTokenProductSubscription
+		graphql.NoUnmarshalJSON
+	}
+	firstPass.CheckAccessTokenDotcomDotcomQueryProductSubscriptionByAccessTokenProductSubscription = v
+
+	err := json.Unmarshal(b, &firstPass)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(
+		b, &v.ProductSubscription)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
-// GetEnabled returns CheckAccessTokenDotcomDotcomQueryProductSubscriptionByAccessTokenProductSubscriptionLlmProxyAccessLLMProxyAccess.Enabled, and is useful for accessing the field via an interface.
-func (v *CheckAccessTokenDotcomDotcomQueryProductSubscriptionByAccessTokenProductSubscriptionLlmProxyAccessLLMProxyAccess) GetEnabled() bool {
-	return v.Enabled
+type __premarshalCheckAccessTokenDotcomDotcomQueryProductSubscriptionByAccessTokenProductSubscription struct {
+	Id string `json:"id"`
+
+	Uuid string `json:"uuid"`
+
+	IsArchived bool `json:"isArchived"`
+
+	LlmProxyAccess ProductSubscriptionLlmProxyAccessLLMProxyAccess `json:"llmProxyAccess"`
 }
 
-// GetRateLimit returns CheckAccessTokenDotcomDotcomQueryProductSubscriptionByAccessTokenProductSubscriptionLlmProxyAccessLLMProxyAccess.RateLimit, and is useful for accessing the field via an interface.
-func (v *CheckAccessTokenDotcomDotcomQueryProductSubscriptionByAccessTokenProductSubscriptionLlmProxyAccessLLMProxyAccess) GetRateLimit() *CheckAccessTokenDotcomDotcomQueryProductSubscriptionByAccessTokenProductSubscriptionLlmProxyAccessLLMProxyAccessRateLimitLLMProxyRateLimit {
-	return v.RateLimit
+func (v *CheckAccessTokenDotcomDotcomQueryProductSubscriptionByAccessTokenProductSubscription) MarshalJSON() ([]byte, error) {
+	premarshaled, err := v.__premarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(premarshaled)
 }
 
-// CheckAccessTokenDotcomDotcomQueryProductSubscriptionByAccessTokenProductSubscriptionLlmProxyAccessLLMProxyAccessRateLimitLLMProxyRateLimit includes the requested fields of the GraphQL type LLMProxyRateLimit.
-// The GraphQL type's documentation follows.
-//
-// LLM-proxy access rate limits for a subscription.
-// FOR INTERNAL USE ONLY.
-type CheckAccessTokenDotcomDotcomQueryProductSubscriptionByAccessTokenProductSubscriptionLlmProxyAccessLLMProxyAccessRateLimitLLMProxyRateLimit struct {
-	// Requests per time interval.
-	Limit int `json:"limit"`
-	// Interval for rate limiting.
-	IntervalSeconds int `json:"intervalSeconds"`
-}
+func (v *CheckAccessTokenDotcomDotcomQueryProductSubscriptionByAccessTokenProductSubscription) __premarshalJSON() (*__premarshalCheckAccessTokenDotcomDotcomQueryProductSubscriptionByAccessTokenProductSubscription, error) {
+	var retval __premarshalCheckAccessTokenDotcomDotcomQueryProductSubscriptionByAccessTokenProductSubscription
 
-// GetLimit returns CheckAccessTokenDotcomDotcomQueryProductSubscriptionByAccessTokenProductSubscriptionLlmProxyAccessLLMProxyAccessRateLimitLLMProxyRateLimit.Limit, and is useful for accessing the field via an interface.
-func (v *CheckAccessTokenDotcomDotcomQueryProductSubscriptionByAccessTokenProductSubscriptionLlmProxyAccessLLMProxyAccessRateLimitLLMProxyRateLimit) GetLimit() int {
-	return v.Limit
-}
-
-// GetIntervalSeconds returns CheckAccessTokenDotcomDotcomQueryProductSubscriptionByAccessTokenProductSubscriptionLlmProxyAccessLLMProxyAccessRateLimitLLMProxyRateLimit.IntervalSeconds, and is useful for accessing the field via an interface.
-func (v *CheckAccessTokenDotcomDotcomQueryProductSubscriptionByAccessTokenProductSubscriptionLlmProxyAccessLLMProxyAccessRateLimitLLMProxyRateLimit) GetIntervalSeconds() int {
-	return v.IntervalSeconds
+	retval.Id = v.ProductSubscription.Id
+	retval.Uuid = v.ProductSubscription.Uuid
+	retval.IsArchived = v.ProductSubscription.IsArchived
+	retval.LlmProxyAccess = v.ProductSubscription.LlmProxyAccess
+	return &retval, nil
 }
 
 // CheckAccessTokenResponse is returned by CheckAccessToken on success.
@@ -122,6 +121,82 @@ type CheckAccessTokenResponse struct {
 
 // GetDotcom returns CheckAccessTokenResponse.Dotcom, and is useful for accessing the field via an interface.
 func (v *CheckAccessTokenResponse) GetDotcom() CheckAccessTokenDotcomDotcomQuery { return v.Dotcom }
+
+// ProductSubscription includes the GraphQL fields of ProductSubscription requested by the fragment ProductSubscription.
+// The GraphQL type's documentation follows.
+//
+// A product subscription that was created on Sourcegraph.com.
+// FOR INTERNAL USE ONLY.
+type ProductSubscription struct {
+	// The unique ID of this product subscription.
+	Id string `json:"id"`
+	// The unique UUID of this product subscription. Unlike ProductSubscription.id, this does not
+	// encode the type and is not a GraphQL node ID.
+	Uuid string `json:"uuid"`
+	// Whether this product subscription was archived.
+	IsArchived bool `json:"isArchived"`
+	// LLM-proxy access granted to this subscription. Properties may be inferred from the active license, or be defined in overrides.
+	LlmProxyAccess ProductSubscriptionLlmProxyAccessLLMProxyAccess `json:"llmProxyAccess"`
+}
+
+// GetId returns ProductSubscription.Id, and is useful for accessing the field via an interface.
+func (v *ProductSubscription) GetId() string { return v.Id }
+
+// GetUuid returns ProductSubscription.Uuid, and is useful for accessing the field via an interface.
+func (v *ProductSubscription) GetUuid() string { return v.Uuid }
+
+// GetIsArchived returns ProductSubscription.IsArchived, and is useful for accessing the field via an interface.
+func (v *ProductSubscription) GetIsArchived() bool { return v.IsArchived }
+
+// GetLlmProxyAccess returns ProductSubscription.LlmProxyAccess, and is useful for accessing the field via an interface.
+func (v *ProductSubscription) GetLlmProxyAccess() ProductSubscriptionLlmProxyAccessLLMProxyAccess {
+	return v.LlmProxyAccess
+}
+
+// ProductSubscriptionLlmProxyAccessLLMProxyAccess includes the requested fields of the GraphQL type LLMProxyAccess.
+// The GraphQL type's documentation follows.
+//
+// LLM-proxy access granted to a subscription.
+// FOR INTERNAL USE ONLY.
+type ProductSubscriptionLlmProxyAccessLLMProxyAccess struct {
+	// Whether or not a subscription has LLM-proxy access.
+	//
+	// It may be true, even if a subscription is archived, as a historical record. However,
+	// archived subscriptions should not be treated as having access to LLM-proxy.
+	Enabled bool `json:"enabled"`
+	// Rate limits for LLM-proxy access, if access is enabled.
+	RateLimit *ProductSubscriptionLlmProxyAccessLLMProxyAccessRateLimitLLMProxyRateLimit `json:"rateLimit"`
+}
+
+// GetEnabled returns ProductSubscriptionLlmProxyAccessLLMProxyAccess.Enabled, and is useful for accessing the field via an interface.
+func (v *ProductSubscriptionLlmProxyAccessLLMProxyAccess) GetEnabled() bool { return v.Enabled }
+
+// GetRateLimit returns ProductSubscriptionLlmProxyAccessLLMProxyAccess.RateLimit, and is useful for accessing the field via an interface.
+func (v *ProductSubscriptionLlmProxyAccessLLMProxyAccess) GetRateLimit() *ProductSubscriptionLlmProxyAccessLLMProxyAccessRateLimitLLMProxyRateLimit {
+	return v.RateLimit
+}
+
+// ProductSubscriptionLlmProxyAccessLLMProxyAccessRateLimitLLMProxyRateLimit includes the requested fields of the GraphQL type LLMProxyRateLimit.
+// The GraphQL type's documentation follows.
+//
+// LLM-proxy access rate limits for a subscription.
+// FOR INTERNAL USE ONLY.
+type ProductSubscriptionLlmProxyAccessLLMProxyAccessRateLimitLLMProxyRateLimit struct {
+	// Requests per time interval.
+	Limit int `json:"limit"`
+	// Interval for rate limiting.
+	IntervalSeconds int `json:"intervalSeconds"`
+}
+
+// GetLimit returns ProductSubscriptionLlmProxyAccessLLMProxyAccessRateLimitLLMProxyRateLimit.Limit, and is useful for accessing the field via an interface.
+func (v *ProductSubscriptionLlmProxyAccessLLMProxyAccessRateLimitLLMProxyRateLimit) GetLimit() int {
+	return v.Limit
+}
+
+// GetIntervalSeconds returns ProductSubscriptionLlmProxyAccessLLMProxyAccessRateLimitLLMProxyRateLimit.IntervalSeconds, and is useful for accessing the field via an interface.
+func (v *ProductSubscriptionLlmProxyAccessLLMProxyAccessRateLimitLLMProxyRateLimit) GetIntervalSeconds() int {
+	return v.IntervalSeconds
+}
 
 // __CheckAccessTokenInput is used internally by genqlient
 type __CheckAccessTokenInput struct {
@@ -144,16 +219,19 @@ func CheckAccessToken(
 query CheckAccessToken ($token: String!) {
 	dotcom {
 		productSubscriptionByAccessToken(accessToken: $token) {
-			id
-			uuid
-			isArchived
-			llmProxyAccess {
-				enabled
-				rateLimit {
-					limit
-					intervalSeconds
-				}
-			}
+			... ProductSubscription
+		}
+	}
+}
+fragment ProductSubscription on ProductSubscription {
+	id
+	uuid
+	isArchived
+	llmProxyAccess {
+		enabled
+		rateLimit {
+			limit
+			intervalSeconds
 		}
 	}
 }

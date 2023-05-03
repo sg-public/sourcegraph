@@ -2,6 +2,7 @@ package redispool
 
 import (
 	"context"
+	"encoding/json"
 	"strings"
 	"time"
 
@@ -75,6 +76,14 @@ func (v Value) Int() (int, error) {
 
 func (v Value) String() (string, error) {
 	return redis.String(v.reply, v.err)
+}
+
+func (v Value) UnmarshalBytes(dst any) error {
+	b, err := v.Bytes()
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(b, dst)
 }
 
 func (v Value) IsNil() bool {
