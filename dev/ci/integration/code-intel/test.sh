@@ -39,7 +39,7 @@ echo '--- :zero: downloading test data from GCS'
 bazel run //dev/codeintel-qa/cmd/download
 
 echo '--- :one: clearing existing state'
-go run //dev/codeintel-qa/cmd/clear
+bazel run //dev/codeintel-qa/cmd/clear
 
 echo '--- :two: integration test ./dev/codeintel-qa/cmd/upload'
 env PATH="${root_dir}/.bin:${PATH}" go run ./cmd/upload --timeout=5m
