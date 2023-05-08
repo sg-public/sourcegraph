@@ -15,6 +15,7 @@ All notable changes to Sourcegraph Cody will be documented in this file.
 ### Fixed
 
 - Error notification display pattern for rate limit [pull/51521](https://github.com/sourcegraph/sourcegraph/pull/51521)
+- Fixes an issue where inline code blocks were unexpectedly escaped [pull/](https://github.com/sourcegraph/sourcegraph/pull/)
 
 ### Changed
 
