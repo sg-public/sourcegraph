@@ -3938,6 +3938,23 @@ CREATE SEQUENCE registry_extensions_id_seq
 
 ALTER SEQUENCE registry_extensions_id_seq OWNED BY registry_extensions.id;
 
+CREATE TABLE repo_commits (
+    id integer NOT NULL,
+    repo_id integer NOT NULL,
+    commit_sha text NOT NULL,
+    perforce_changelist_id text
+);
+
+CREATE SEQUENCE repo_commits_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+ALTER SEQUENCE repo_commits_id_seq OWNED BY repo_commits.id;
+
 CREATE TABLE repo_embedding_jobs (
     id integer NOT NULL,
     state text DEFAULT 'queued'::text,
@@ -4776,6 +4793,8 @@ ALTER TABLE ONLY registry_extensions ALTER COLUMN id SET DEFAULT nextval('regist
 
 ALTER TABLE ONLY repo ALTER COLUMN id SET DEFAULT nextval('repo_id_seq'::regclass);
 
+ALTER TABLE ONLY repo_commits ALTER COLUMN id SET DEFAULT nextval('repo_commits_id_seq'::regclass);
+
 ALTER TABLE ONLY repo_embedding_jobs ALTER COLUMN id SET DEFAULT nextval('repo_embedding_jobs_id_seq'::regclass);
 
 ALTER TABLE ONLY repo_paths ALTER COLUMN id SET DEFAULT nextval('repo_paths_id_seq'::regclass);
@@ -5192,6 +5211,9 @@ ALTER TABLE ONLY registry_extension_releases
 
 ALTER TABLE ONLY registry_extensions
     ADD CONSTRAINT registry_extensions_pkey PRIMARY KEY (id);
+
+ALTER TABLE ONLY repo_commits
+    ADD CONSTRAINT repo_commits_pkey PRIMARY KEY (id);
 
 ALTER TABLE ONLY repo_embedding_jobs
     ADD CONSTRAINT repo_embedding_jobs_pkey PRIMARY KEY (id);
@@ -5695,6 +5717,8 @@ CREATE UNIQUE INDEX registry_extensions_uuid ON registry_extensions USING btree 
 CREATE INDEX repo_archived ON repo USING btree (archived);
 
 CREATE INDEX repo_blocked_idx ON repo USING btree (((blocked IS NOT NULL)));
+
+CREATE UNIQUE INDEX repo_commit_sha_unique ON repo_commits USING btree (repo_id, commit_sha);
 
 CREATE INDEX repo_created_at ON repo USING btree (created_at);
 
@@ -6269,6 +6293,9 @@ ALTER TABLE ONLY registry_extensions
 
 ALTER TABLE ONLY registry_extensions
     ADD CONSTRAINT registry_extensions_publisher_user_id_fkey FOREIGN KEY (publisher_user_id) REFERENCES users(id);
+
+ALTER TABLE ONLY repo_commits
+    ADD CONSTRAINT repo_commits_repo_id_fkey FOREIGN KEY (repo_id) REFERENCES repo(id) ON DELETE CASCADE DEFERRABLE;
 
 ALTER TABLE ONLY repo_kvps
     ADD CONSTRAINT repo_kvps_repo_id_fkey FOREIGN KEY (repo_id) REFERENCES repo(id) ON DELETE CASCADE;
