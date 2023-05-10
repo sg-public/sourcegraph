@@ -58,5 +58,4 @@ export const createJsContext = ({ sourcegraphBaseUrl }: { sourcegraphBaseUrl: st
     localFilePickerAvailable: false,
     srcServeGitUrl: 'http://127.0.0.1:3434',
     primaryLoginProvidersCount: 5,
-    batchChangesRolloutWindows: null,
 })
