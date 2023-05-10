@@ -82,6 +82,14 @@ type Repo struct {
 	KeyValuePairs map[string]*string `json:",omitempty"`
 }
 
+// RepoCommit is a record of a repo and a corresponding commit.
+type RepoCommit struct {
+	ID                   int64
+	RepoID               api.RepoID
+	CommitSHA            string
+	PerforceChangelistID string `json:"perforce_changelist_id,omitempty"`
+}
+
 // SearchedRepo is a collection of metadata about repos that is used to decorate search results
 type SearchedRepo struct {
 	// ID is the unique numeric ID for this repository.

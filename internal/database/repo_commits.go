@@ -3,10 +3,13 @@ package database
 import (
 	"context"
 
+	"github.com/keegancsmith/sqlf"
 	"github.com/sourcegraph/log"
 	"github.com/sourcegraph/sourcegraph/internal/api"
 	"github.com/sourcegraph/sourcegraph/internal/database/basestore"
 	"github.com/sourcegraph/sourcegraph/internal/database/batch"
+	"github.com/sourcegraph/sourcegraph/internal/database/dbutil"
+	"github.com/sourcegraph/sourcegraph/internal/types"
 )
 
 type RepoCommitsStore interface {
@@ -15,6 +18,7 @@ type RepoCommitsStore interface {
 	With(basestore.ShareableStore) RepoCommitsStore
 
 	BatchInsertCommitSHAsWithPerforceChangelistID(context.Context, api.RepoID, map[string]string) error
+	GetLatestForRepo(ctx context.Context, repoID api.RepoID) (*types.RepoCommit, error)
 }
 
 type repoCommitsStore struct {
@@ -64,3 +68,44 @@ func (s *repoCommitsStore) BatchInsertCommitSHAsWithPerforceChangelistID(ctx con
 	}
 	return inserter.Flush(ctx)
 }
+
+var getLatestForRepoFmtStr = `
+SELECT
+	id,
+	repo_id,
+	commit_sha,
+	perforce_changelist_id
+FROM
+	repo_commits
+WHERE
+	repo_id = %s
+ORDER BY
+	id DESC
+LIMIT 1`
+
+func (s *repoCommitsStore) GetLatestForRepo(ctx context.Context, repoID api.RepoID) (*types.RepoCommit, error) {
+	q := sqlf.Sprintf(getLatestForRepoFmtStr, repoID)
+	row := s.QueryRow(ctx, q)
+	return scanRepoCommitRow(row)
+}
+
+func scanRepoCommitRow(scanner dbutil.Scanner) (*types.RepoCommit, error) {
+	var r types.RepoCommit
+	err := scanner.Scan(
+		&r.ID,
+		&r.RepoID,
+		&r.CommitSHA,
+		&dbutil.NullString{S: &r.PerforceChangelistID},
+	)
+	return &r, err
+}
+
+// func scanRepoCommitRow(scanner dbutil.Scanner) (commit *types.RepoCommit, err error) {
+// 	err = scanner.Scan(
+// 		&commit.ID,
+// 		&commit.RepoID,
+// 		&commit.CommitSHA,
+// 		&dbutil.NullString{S: &commit.PerforceChangelistID},
+// 	)
+// 	return
+// }
