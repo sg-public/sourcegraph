@@ -2410,7 +2410,7 @@ func (s *Server) doClone(ctx context.Context, repo api.RepoName, dir GitDir, syn
 	}
 
 	// best-effort update the output of the clone
-	s.setLastOutput(ctx, repo, string(output))
+	go s.setLastOutput(bgCtx, repo, string(output))
 
 	logger.Info("repo cloned")
 	repoClonedCounter.Inc()
