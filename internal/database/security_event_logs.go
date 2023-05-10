@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"encoding/json"
+	"strconv"
 	"strings"
 	"time"
 
@@ -12,6 +13,7 @@ import (
 	sgactor "github.com/sourcegraph/sourcegraph/internal/actor"
 	"github.com/sourcegraph/sourcegraph/internal/audit"
 	"github.com/sourcegraph/sourcegraph/internal/database/basestore"
+	"github.com/sourcegraph/sourcegraph/internal/env"
 	"github.com/sourcegraph/sourcegraph/internal/jsonc"
 	"github.com/sourcegraph/sourcegraph/internal/trace"
 	"github.com/sourcegraph/sourcegraph/internal/version"
@@ -118,6 +120,8 @@ func (s *securityEventLogsStore) Insert(ctx context.Context, event *SecurityEven
 	return s.InsertList(ctx, []*SecurityEvent{event})
 }
 
+var onlySTDOUT = env.Get("SRC_AUDIT_LOG_ONLY_STDOUT", "true", "if true, only logs to stdout")
+
 func (s *securityEventLogsStore) InsertList(ctx context.Context, events []*SecurityEvent) error {
 	actor := sgactor.FromContext(ctx)
 	vals := make([]*sqlf.Query, len(events))
@@ -157,10 +161,17 @@ func (s *securityEventLogsStore) InsertList(ctx context.Context, events []*Secur
 			event.Timestamp.UTC(),
 		)
 	}
-	query := sqlf.Sprintf("INSERT INTO security_event_logs(name, url, user_id, anonymous_user_id, source, argument, version, timestamp) VALUES %s", sqlf.Join(vals, ","))
+	onlyLogToStdOUT, err := strconv.ParseBool(onlySTDOUT)
+	if err != nil {
+		return err
+	}
 
-	if _, err := s.Handle().ExecContext(ctx, query.Query(sqlf.PostgresBindVar), query.Args()...); err != nil {
-		return errors.Wrap(err, "INSERT")
+	if !onlyLogToStdOUT {
+		query := sqlf.Sprintf("INSERT INTO security_event_logs(name, url, user_id, anonymous_user_id, source, argument, version, timestamp) VALUES %s", sqlf.Join(vals, ","))
+
+		if _, err := s.Handle().ExecContext(ctx, query.Query(sqlf.PostgresBindVar), query.Args()...); err != nil {
+			return errors.Wrap(err, "INSERT")
+		}
 	}
 
 	for _, event := range events {

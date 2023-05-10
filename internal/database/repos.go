@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net"
-	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -156,10 +155,13 @@ var counterAccessGranted = promauto.NewCounter(prometheus.CounterOpts{
 	Help: "metric to measure the impact of logging access granted to private repos",
 })
 
+var disableLog = env.Get("SRC_DISABLE_LOG_PRIVATE_REPO_ACCESS", "false", " if true, disables logging access granted to private repos")
+
 func logPrivateRepoAccessGranted(ctx context.Context, db DB, ids []api.RepoID) {
-	if disabled, _ := strconv.ParseBool(os.Getenv("SRC_DISABLE_LOG_PRIVATE_REPO_ACCESS")); disabled {
+	if disabled, _ := strconv.ParseBool(disableLog); disabled {
 		return
 	}
+	println("logging private repo access granted")
 
 	a := actor.FromContext(ctx)
 	arg, _ := json.Marshal(struct {
