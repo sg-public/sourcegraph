@@ -24,6 +24,7 @@ go_library(
         "//enterprise/cmd/symbols/shared",
         "//enterprise/cmd/worker/shared",
         "//internal/service",
+        "//internal/service/localcodehost",
         "//internal/service/servegit",
         "//ui/assets",
         "//ui/assets/enterprise",
