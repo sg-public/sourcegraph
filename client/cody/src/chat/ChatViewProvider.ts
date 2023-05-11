@@ -3,6 +3,7 @@ import path from 'path'
 
 import * as vscode from 'vscode'
 
+import { RecipeID } from '@sourcegraph/cody-shared/out/src/chat/recipes/recipe'
 import { BotResponseMultiplexer } from '@sourcegraph/cody-shared/src/chat/bot-response-multiplexer'
 import { ChatClient } from '@sourcegraph/cody-shared/src/chat/chat'
 import { escapeCodyMarkdown } from '@sourcegraph/cody-shared/src/chat/markdown'
@@ -344,7 +345,7 @@ export class ChatViewProvider implements vscode.WebviewViewProvider, vscode.Disp
         this.publishContextStatus()
     }
 
-    public async executeRecipe(recipeId: string, humanChatInput: string = '', showTab = true): Promise<void> {
+    public async executeRecipe(recipeId: RecipeID, humanChatInput: string = '', showTab = true): Promise<void> {
         if (this.isMessageInProgress) {
             this.sendErrorToWebview('Cannot execute multiple recipes. Please wait for the current recipe to finish.')
         }
@@ -390,7 +391,7 @@ export class ChatViewProvider implements vscode.WebviewViewProvider, vscode.Disp
         logEvent(`CodyVSCodeExtension:recipe:${recipe.id}:executed`)
     }
 
-    private async runRecipeForSuggestion(recipeId: string, humanChatInput: string = ''): Promise<void> {
+    private async runRecipeForSuggestion(recipeId: RecipeID, humanChatInput: string = ''): Promise<void> {
         const recipe = getRecipe(recipeId)
         if (!recipe) {
             return
